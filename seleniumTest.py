@@ -190,10 +190,8 @@ def checkLink(url,visi,browser,iteration,fileOutput,types,pattern, MaxIteration)
 			print "Unkown error"
 
 def login(fileOutput,output_filename,types,pattern,site,MaxIteration):
-	username ="seafile-ta-01@uni-mainz.de" 
-	#raw_input("Username: ")
-	password = "Wurzel16ist4"
-	#getpass.getpass("Password: ")
+	username =raw_input("Username: ")
+	password = getpass.getpass("Password: ")
 	if site is "":
 		url = "https://seafile.rlp.net/"
 		browser = webdriver.Firefox()
