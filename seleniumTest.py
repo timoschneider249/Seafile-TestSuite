@@ -202,11 +202,11 @@ def login(fileOutput,output_filename,types,pattern,site,MaxIteration):
 		
 		print "open hidden login :3"
 		local_input = browser.find_element_by_id("toggle_local_login").click()
-		time.sleep(1)
+		
 		print "Searching usernameId"
 		usernameId = browser.find_element_by_name("username")
 		print "Searching passwordId"
-		time.sleep(1)
+		
 		passwordId = browser.find_element_by_name("password")
 		usernameId.send_keys(username) 
 		passwordId.send_keys(password)
