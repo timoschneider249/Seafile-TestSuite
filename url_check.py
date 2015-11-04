@@ -40,31 +40,8 @@ brokenPDF = []
 iteration = 0
 pattern = "seafile.rlp.net"
 MaxIteration = 9999
-#Pings the api	
-def pingTest():	
-	ping = subprocess.check_output("curl https://seafile.rlp.net/api2/ping/",stderr=open(os.devnull, 'w'),shell=True)
-	print "Trying to reach the api of seafile.uni-mainz"
-	if "pong" in ping:
-		print "Success"
-	else:
-		print "No Success"
 
-#receives a token and prints it
-def receiveToken(u,p):
-	token = subprocess.check_output("curl -d 'username="+username+"&password="+password+"' https://seafile.rlp.net/api2/auth-token/",stderr=open(os.devnull, 'w'),shell=True,)
-	s = token[11:-2]
-	print "Your token is "+s
-	return s
 
-#checks if token is valid
-def pingToken(token):
-	
-	authPing = subprocess.check_output("curl -H 'Authorization: Token "+token+"' https://seafile.rlp.net/api2/auth/ping",stderr=open(os.devnull, 'w'), shell=True)
-	print "Checking if Token is valid"
-	if "pong" in authPing:
-		print "Success"
-	else:
-		print "No Success"
      	
 def checkLink(url,visi,br,iteration,fileOutput,types,pattern, MaxIteration):
 	# Set the startingpoint for the spider and initialize 
@@ -440,9 +417,7 @@ if args.quiet:
 	site = ""
 	login(fileOutput,output_filename,types,pattern,site,MaxIteration)
 
-if args.ping:
-	print "Starting to ping seafile.rlp.net api"
-	pingTest()
+
 
 if args.compare:
 	print "Comparing two files"
@@ -450,9 +425,6 @@ if args.compare:
 	file2 = args.compare[1]
 	compareLinks(file1,file2)
 
-if args.token:
-	x = receiveToken(username,password)
-	pingToken(x)
 
 if args.types:
 	print "types to search %s"%args.types
