@@ -229,7 +229,7 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 	#   we just let the spider go until some last url didn't
 	#   have new ones on the webpage
 
-
+	
 	img_counter = 0
 	if fileOutput == False:
 		print "*"*50
@@ -254,40 +254,67 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 		for img in soup.findAll('img'):
 
 			img = img['src']
-			
-			if types is "":
-				try:
-					#google only
-					if img.startswith("//"):
-						img = img[2:]
-						img = "http://"+img
-						print img
-					elif "http" not in img or "www." not in img:
-						#print img
-						parsedLink = urlparse.urlsplit(currentUrl)
-						#print parsedLink							
-						img = parsedLink.scheme+"://"+parsedLink.netloc+"/"+img
-						#print img
+			for imgTypes in types:
+				if imgTypes in img:
 
-					r = requests.head(img)
-					if r.status_code == requests.codes.ok:
-						if fileOutput == False:
-							print "found image: %s" %(img)
-							print "image is available"
+					try:
+						if "http" not in img:
+							parsedLink = urlparse.urlsplit(currentUrl)							
+							img = parsedLink.scheme+"://"+parsedLink.netloc+"/"+img
+
+						r = requests.head(img)
+						if r.status_code == requests.codes.ok:
+							if fileOutput == False:
+								print "found image: %s" %(img)
+								print "image is available"
+							images.append(img)
+							img_counter +=1
 								
-						images.append(img)
-						img_counter +=1								
-					else:
-						if fileOutput == False:
-							print "found image: %s" %(img)
-							print "image site is down"
-						brokenImages.append(img)
-						img_counter +=1
-				except requests.HTTPError, e:
-					print "HTTP ERROR %s occured" % e.code
-				except (requests.exceptions.MissingSchema) as e:
-					print "Missing schema occured. status %s"%e
-					print e	
+						else:
+							if fileOutput == False:
+								print "found image: %s" %(img)
+								print "image site is down"
+							brokenImages.append(img)
+							img_counter +=1
+					except requests.HTTPError, e:
+						print "HTTP ERROR %s occured" % e.code
+					except (requests.exceptions.MissingSchema) as e:
+						print "Missing schema occured. status %s"%e
+						print e	
+			
+				if types is "":
+					try:
+						#google only
+						if img.startswith("//"):
+							img = img[2:]
+							img = "http://"+img
+							print img
+						elif "http" not in img or "www." not in img:
+							#print img
+							parsedLink = urlparse.urlsplit(currentUrl)
+							#print parsedLink							
+							img = parsedLink.scheme+"://"+parsedLink.netloc+"/"+img
+							#print img
+
+						r = requests.head(img)
+						if r.status_code == requests.codes.ok:
+							if fileOutput == False:
+								print "found image: %s" %(img)
+								print "image is available"
+									
+							images.append(img)
+							img_counter +=1								
+						else:
+							if fileOutput == False:
+								print "found image: %s" %(img)
+								print "image site is down"
+							brokenImages.append(img)
+							img_counter +=1
+					except requests.HTTPError, e:
+						print "HTTP ERROR %s occured" % e.code
+					except (requests.exceptions.MissingSchema) as e:
+						print "Missing schema occured. status %s"%e
+						print e	
 				
 			
 		if fileOutput == False:
@@ -296,81 +323,7 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 			print "Number of images: %d"%(len(images))
 		browser.quit()
 		sys.exit(0)
-		for link in br.links():
-			if iteration < MaxIteration:
-
-				try:	
-					
-					newurl =  urlparse.urljoin(link.base_url,link.url)
-					allLinks.append(newurl)
-					if pattern != "seafile.rlp.net":
-
-						check= re.search(pattern, newurl, flags=re.IGNORECASE)
-						if newurl not in visited and check is not None:
-							print "Found regex: '%s' in URL: %s" %(check.group(0),newurl)
-							visited.append(newurl)
-							urls.append(newurl)
-							
-							if fileOutput == False:
-								print "found: " +newurl
-								print "Iteration: %d" %(iteration)
-							checkLink(newurl,newurl,br,iteration+1,fileOutput,types,pattern,MaxIteration)
-					else:
-						if newurl not in visited and pattern in newurl:
-							visited.append(newurl)
-							urls.append(newurl)
-							
-							if fileOutput == False:
-								print "found: " +newurl
-								print "Iteration: %d" %(iteration)
-							checkLink(newurl,newurl,br,iteration+1,fileOutput,types,pattern,MaxIteration)
-
-
-				except (mechanize.HTTPError,mechanize.URLError) as e:
-					brokenLinks.append("Found: %s on site %s with Error Code %s"%(newurl,currentUrl,e))
-					if fileOutput == False:
-						print 'HTTP ERROR %s occured' % e
-					urls.pop(0)
-			else:
-				if fileOutput == False:
-					print >>sys.stderr, "Reached max iteration"
-
-	else:
-		try:
-
-			if "pdf" in currentUrl:
-				print "Pdf file found"
-				r = requests.head(currentUrl)
-				if r.status_code == requests.codes.ok:
-					if fileOutput == False:
-						print "found pdf: %s" %(currentUrl)
-						print "pdf is available"
-					pdfs.append(currentUrl)
-				else:
-					if fileOutput == False:
-						print "PDF site is down"
-					brokenPDF.append(currentUrl)
-			elif ".jpg" in currentUrl:
-				r = requests.head(currentUrl)
-				if r.status_code == requests.codes.ok:
-					if fileOutput == False:
-						print "found image: %s" %(currentUrl)
-						print "image is available"
-					images.append(currentUrl)
-				else:
-					if fileOutput == False:
-						print "PDF site is down"
-					brokenImages.append(currentUrl)
-			else:
-				print "Non html found"
-
-		except requests.HTTPError, e:
-			print "HTTP ERROR %s occured" % e.code
-		except (requests.exceptions.MissingSchema) as e:
-			print "Missing schema occured. status %s"%e
-			print e	
-		except: 
-			print "Unkown error"
+		
 
 def output(visited, allLinks, brokenLinks, fileOutput,output_filename, images):
 	i = 0
@@ -512,6 +465,7 @@ def login(fileOutput,output_filename,types,pattern,site,MaxIteration):
 	
 
 def loginSelenium(fileOutput,output_filename,types,pattern,site,MaxIteration):
+
 	username =raw_input("Username: ")
 	password = getpass.getpass("Password: ")
 	if site is "":
@@ -611,6 +565,7 @@ parser.add_argument('-pas', '--patternStart',	nargs='+',		help='-pas 	: Define a
 parser.add_argument('-is', '--iterationStart',	nargs='+',		help='-is  	: Change max Number of Iterations, default is infinite. Also lets you define a starting page, example: 5 http://www.google.com')
 parser.add_argument('-isp', '--iterationStartPattern',	nargs='+',	help='-isp  	: First give max iteration and starting page, afterwords define pattern')
 parser.add_argument('-ls', '--liveSearch',		action='store_true',	help='-ls	: Using selenium to search even javascript based links and images')
+parser.add_argument('-st', '--SeleniumTypes',	nargs = '*' ,		help='-st	: Same as ls, but with the option to search for image types')
 
 args = parser.parse_args()
 
@@ -706,6 +661,16 @@ if args.liveSearch:
 	fileOutput = False
 	output_filename = None
 	types = ""
+	site = ""
+	pattern = "seafile.rlp.net"
+	MaxIteration = 9999
+	loginSelenium(fileOutput,output_filename,types,pattern,site,MaxIteration)
+
+if args.SeleniumTypes:
+	types = args.SeleniumTypes
+	print "Running programm with Selenium"
+	fileOutput = False
+	output_filename = None
 	site = ""
 	pattern = "seafile.rlp.net"
 	MaxIteration = 9999
