@@ -24,12 +24,15 @@ import time
 from bs4 import BeautifulSoup as BS4
 import getpass
 
-#####https://github.com/haiwen/seafile/blob/master/python/seaserv/api.py#####
+
 class Token:
 	pass
-username = "seafile-ta-01@uni-mainz.de"
-password = "Wurzel16ist4"
-s = ""	
+
+
+
+#Defining variables 
+username = "timschne@uni-mainz.de"
+password = "Rbgt0757!"
 output_filename = "visited.txt"
 visited = []
 urls = []
@@ -46,17 +49,12 @@ pattern = "seafile.rlp.net"
 MaxIteration = 9999
 
 
-     	
+#This method crawls through a site adn searches links. Takes the first link and follows them (number of Iterations). 
+# After every link was visited crawler goes back to and searches for new links.
+#Found links are stored in "url[]" and visited links are stored in "visited[]"
 def checkLink(url,visi,br,iteration,fileOutput,types,pattern, MaxIteration):
-	# Set the startingpoint for the spider and initialize 
-	# the a mechanize browser object
-	# Since the amount of urls in the list is dynamic
-	#   we just let the spider go until some last url didn't
-	#   have new ones on the webpage
-	# Selenium Stuff
-
 	
-	#
+
 
 	img_counter = 0
 	if fileOutput == False:
@@ -237,10 +235,11 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 
 	browser.get(urls[0])
 	currentUrl = urls.pop(0)
-
+	time.sleep(1)
 	
 	r = requests.head(url)
 	if "text/html" in r.headers["content-type"]:
+
 		browser.get(currentUrl)  
 
 		element_to_hover_over = browser.find_element_by_class_name("op-container")
@@ -252,8 +251,9 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 		soup = BS4(html_source,'html.parser')  
 
 		for img in soup.findAll('img'):
-
+			
 			img = img['src']
+			
 			for imgTypes in types:
 				if imgTypes in img:
 
@@ -280,9 +280,10 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 						print "HTTP ERROR %s occured" % e.code
 					except (requests.exceptions.MissingSchema) as e:
 						print "Missing schema occured. status %s"%e
-						print e	
+						print e		
+					
 			
-				if types is "":
+			if types is "":
 					try:
 						#google only
 						if img.startswith("//"):
@@ -296,12 +297,14 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 							img = parsedLink.scheme+"://"+parsedLink.netloc+"/"+img
 							#print img
 
+
 						r = requests.head(img)
 						if r.status_code == requests.codes.ok:
 							if fileOutput == False:
 								print "found image: %s" %(img)
 								print "image is available"
-									
+
+								
 							images.append(img)
 							img_counter +=1								
 						else:
@@ -321,9 +324,8 @@ def checkLinkSelenium(url,visi,browser,iteration,fileOutput,types,pattern, MaxIt
 			print "*"*50
 			print "Number of images on this site %d"%(img_counter)
 			print "Number of images: %d"%(len(images))
-		browser.quit()
-		sys.exit(0)
 		
+			
 
 def output(visited, allLinks, brokenLinks, fileOutput,output_filename, images):
 	i = 0
@@ -385,9 +387,6 @@ def login(fileOutput,output_filename,types,pattern,site,MaxIteration):
 		urls.append(url)
 		# Browser 
 		br = mechanize.Browser() 
-		
-
-		
 
 		if output_filename and fileOutput==True:
 			print "Running program with outputfile "+output_filename
@@ -414,16 +413,13 @@ def login(fileOutput,output_filename,types,pattern,site,MaxIteration):
 		br.addheaders = [ ( 'User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1' ) ] 
 
 		# authenticate 
-		br.open("https://seafile.rlp.net/accounts/login/?next=/") 
-		br.select_form( nr = 2 ) 
-		# these two come from the code you posted
-		# where you would normally put in your username and password
-		br[ "username" ] = username
-		br[ "password" ] = password
-		res = br.submit() 
-		url = br.open("https://seafile.rlp.net/profile/" ) 
-		returnPage = url.read() 
-		#print returnPage
+		br.open("https://seafile.rlp.net/shib-login/?next=/") 
+		br.select_form(nr=0)
+		
+
+		
+		res = br.submit(name = "shib-login") 
+		print res
 		print "Successfully logged in as "+username+"!\n"
 		if fileOutput == True:
 			print "writing files..."
@@ -461,32 +457,32 @@ def login(fileOutput,output_filename,types,pattern,site,MaxIteration):
 		urls.append(site)
 		br.open(site) 
 		checkLink(urls[0],visited[0],br,iteration,fileOutput,types,pattern, MaxIteration)
-		output(visited,allLinks,brokenLinks, fileOutput,output_filename, images)
+		
 	
 
 def loginSelenium(fileOutput,output_filename,types,pattern,site,MaxIteration):
 
-	username =raw_input("Username: ")
-	password = getpass.getpass("Password: ")
+	
 	if site is "":
 		url = "https://seafile.rlp.net/"
 		browser = webdriver.Firefox()
 		browser.implicitly_wait(10)
 		browser.get(url)
 		
-		print "open hidden login :3"
-		local_input = browser.find_element_by_id("toggle_local_login").click()
 		
+		local_input = browser.find_element_by_id("shib-login").click()
+		
+		uniMainz = browser.find_element_by_css_selector("div[tabindex='1']").click()
+		print uniMainz
 		print "Searching usernameId"
-		usernameId = browser.find_element_by_name("username")
+		usernameId = browser.find_element_by_id("userNameInput")
 		print "Searching passwordId"
-		
-		passwordId = browser.find_element_by_name("password")
+		passwordId = browser.find_element_by_id("passwordInput")
 		usernameId.send_keys(username) 
 		passwordId.send_keys(password)
 		print "login attempt"
-		login_attempt = browser.find_element_by_xpath("//*[@type='submit']")
-		login_attempt.submit()
+		login_attempt = browser.find_element_by_id("submitButton").click()
+		#login_attempt.submit()
 
 		visited.append(url)
 		urls.append(url)
@@ -533,10 +529,6 @@ def compareLinks(fileInput1,fileInput2):
 					print "Row is missing in file 1"
 					print line
 	print "Done"
-
-
-
-
 
 if len(sys.argv) == 1:
 	print "Running programm without parameters"
